@@ -333,7 +333,7 @@ def init_widgets_list():
                        padding_y = 5,
                        padding_x = 3,
                        borderwidth = 3,
-                       active = colors[14],
+                       active = colors[7],
                        inactive = colors[13],
                        rounded = False,
                        highlight_color = colors[3],
