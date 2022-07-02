@@ -379,7 +379,7 @@ def init_widgets_list():
                        ),
                 Spotify(
                     background=colors[0],
-                    foreground=colors[2]
+                    foreground=colors[1]
                 ),
                 widget.TextBox(
                        text = '|',

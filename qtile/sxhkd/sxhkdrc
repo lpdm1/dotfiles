@@ -122,7 +122,7 @@ super + shift + Return
 
 #dmenu
 super + shift + d
-	dmenu_run -i -nb '#191919' -nf '#6272a4' -sb '#8be9fd' -sf '#191919' -fn 'NotoMonoRegular:bold:pixelsize=14'
+	rofi -show drun
 
 super + shift + c
     code /home/lm/.config/qtile
