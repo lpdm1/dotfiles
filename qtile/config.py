@@ -29,11 +29,14 @@ import os
 import re
 import socket
 import subprocess
+from libqtile import qtile
 from typing import List  # noqa: F401
 from libqtile import layout, bar, widget, hook
-from libqtile.config import Click, Drag, Group, Key, Match, Screen, Rule
+from libqtile.config import Click, Drag, Group, Key, Match, Screen, Rule, KeyChord
 from libqtile.command import lazy
 from libqtile.widget import Spacer
+from spotify import Spotify
+from libqtile.utils import guess_terminal
 #import arcobattery
 
 #mod4 or mod = super key
@@ -41,6 +44,7 @@ mod = "mod4"
 mod1 = "alt"
 mod2 = "control"
 home = os.path.expanduser('~')
+myTerm = "alacritty"
 
 
 @lazy.function
@@ -56,6 +60,11 @@ def window_to_next_group(qtile):
         qtile.currentWindow.togroup(qtile.groups[i + 1].name)
 
 keys = [
+       
+    Key([mod, "shift"], "p",
+        lazy.spawn("code /home/lm/.config/qtile/")),
+    Key([mod, "shift"], "o",
+        lazy.spawn("code /home/lm/.config/alacritty/")),
 
 # Most of our keybindings are in sxhkd file - except these
 
@@ -63,7 +72,6 @@ keys = [
 
     Key([mod], "f", lazy.window.toggle_fullscreen()),
     Key([mod], "q", lazy.window.kill()),
-
 
 # SUPER + SHIFT KEYS
 
@@ -133,6 +141,7 @@ keys = [
         ),
 
 
+
 # FLIP LAYOUT FOR MONADTALL/MONADWIDE
     Key([mod, "shift"], "f", lazy.layout.flip()),
 
@@ -184,12 +193,15 @@ keys.extend([
 groups = []
 
 # FOR QWERTY KEYBOARDS
-group_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0",]
+# group_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0",]
+group_names = ["1", "2", "3", "4", "5",]
 
 # FOR AZERTY KEYBOARDS
 #group_names = ["ampersand", "eacute", "quotedbl", "apostrophe", "parenleft", "section", "egrave", "exclam", "ccedilla", "agrave",]
 
-group_labels = ["1 ", "2 ", "3 ", "4 ", "5 ", "6 ", "7 ", "8 ", "9 ", "0",]
+# group_labels = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0",]
+group_labels = ["1", "2", "3", "4", "5",]
+group_labels = ["", "", "", "", "",]
 #group_labels = ["", "", "", "", "", "", "", "", "", "",]
 #group_labels = ["Web", "Edit/chat", "Image", "Gimp", "Meld", "Video", "Vb", "Files", "Mail", "Music",]
 
@@ -224,7 +236,7 @@ for i in groups:
 def init_layout_theme():
     return {"margin":5,
             "border_width":2,
-            "border_focus": "#5e81ac",
+            "border_focus": "#8be9fd",
             "border_normal": "#4c566a"
             }
 
@@ -287,45 +299,25 @@ widget_defaults = init_widgets_defaults()
 def init_widgets_list():
     prompt = "{0}@{1}: ".format(os.environ["USER"], socket.gethostname())
     widgets_list = [
-            #   widget.Sep(
-            #            linewidth = 0,
-            #            padding = 6,
-            #            foreground = colors[2],
-            #            background = colors[0]
-            #            ),
-            #   widget.Image(
-            #            filename = "~/.config/qtile/icons/python-white.png",
-            #            scale = "False",
-            #            mouse_callbacks = {'Button1': lambda: qtile.cmd_spawn(myTerm)}
-            #            ),
-            #   widget.Sep(
-            #            linewidth = 0,
-            #            padding = 6,
-            #            foreground = colors[2],
-            #            background = colors[0]
-            #            ),
-              widget.CurrentLayoutIcon(
-                       custom_icon_paths = [os.path.expanduser("~/.config/qtile/icons")],
-                       foreground = colors[1],
-                       background = colors[0],
-                       padding = 5,
-                       scale = 0.7
+              widget.Sep(
+                       linewidth = 0,
+                       padding = 6,
+                       foreground = colors[2],
+                       background = colors[0]
                        ),
-              widget.CurrentLayout(
-                       font = "Fira Code",
-                       foreground = colors[1],
-                       background = colors[0],
-                       padding = 5
+                widget.Image(
+                       filename = "~/.config/qtile/icons/python-color.png",
+                       padding = -5,
+                       scale = "False",
+                       mouse_callbacks={'Button1': lambda: qtile.cmd_spawn("rofi -show drun")},
                        ),
-              widget.TextBox(
-                       text = '◤',
-                       font = "Ubuntu Mono",
-                       background = colors[1],
-                       foreground = colors[0],
-                       padding = -8,
-                       fontsize = 40
+              widget.Sep(
+                       linewidth = 0,
+                       padding = 6,
+                       foreground = colors[2],
+                       background = colors[0]
                        ),
-              widget.GroupBox(
+                widget.GroupBox(
                        font = "FontAwesome",
                        fontsize = 15,
                        margin_y = 3,
@@ -334,7 +326,7 @@ def init_widgets_list():
                        padding_x = 3,
                        borderwidth = 3,
                        active = colors[7],
-                       inactive = colors[13],
+                       inactive = colors[2],
                        rounded = False,
                        highlight_color = colors[3],
                        highlight_method = "line",
@@ -345,19 +337,167 @@ def init_widgets_list():
                        other_current_screen_border = colors[8],
                        other_screen_border = colors[8],
                        foreground = colors[1],
-                       background = colors[1]
+                       background = colors[0]
                        ),
-              widget.TextBox(
-                       text = '◤',
+                widget.TextBox(
+                       text = '|',
                        font = "Ubuntu Mono",
                        background = colors[0],
-                       foreground = colors[1],
-                       padding = -8,
-                       fontsize = 40
+                       foreground = '474747',
+                       padding = 2,
+                       fontsize = 14
                        ),
-            #  widget.TextBox(
-            #            text = '|',
+                widget.CurrentLayout(
+                       font = "Ubuntu Mono",
+                       fontsize = 12,
+                       foreground = colors[1],
+                       background = colors[0],
+                       padding = 5
+                       ),
+                widget.TextBox(
+                       text = '|',
+                       font = "Ubuntu Mono",
+                       background = colors[0],
+                       foreground = '474747',
+                       padding = 2,
+                       fontsize = 14
+                       ),
+                widget.WindowName(
+                       font = "Ubuntu Mono",
+                       fontsize = 12,
+                       foreground = colors[1],
+                       background = colors[0],
+                       padding = 0
+                       ),
+                widget.TextBox(
+                       text = '|',
+                       font = "Ubuntu Mono",
+                       background = colors[0],
+                       foreground = '474747',
+                       padding = 2,
+                       fontsize = 14
+                       ),
+                Spotify(
+                    background=colors[0],
+                    foreground=colors[2]
+                ),
+                widget.TextBox(
+                       text = '|',
+                       font = "Ubuntu Mono",
+                       background = colors[0],
+                       foreground = '474747',
+                       padding = 2,
+                       fontsize = 14
+                       ),
+                widget.ThermalSensor(
+                       font = "Ubuntu Mono",
+                       fontsize = 12,
+                       foreground = colors[4],
+                       background = colors[0],
+                       threshold = 90,
+                       fmt = 'Temp: {}',
+                       padding = 5,
+                       ),
+                widget.TextBox(
+                       text = '|',
+                       font = "Ubuntu Mono",
+                       background = colors[0],
+                       foreground = '474747',
+                       padding = 2,
+                       fontsize = 14
+                       ),
+                widget.CheckUpdates(
+                       font = "Ubuntu Mono",
+                       fontsize = 12,
+                       update_interval = 1800,
+                       distro = "Arch_checkupdates",
+                       display_format = "Updates: {updates} ",
+                       foreground = colors[5],
+                       colour_have_updates = colors[10],
+                       colour_no_updates = colors[5],
+                       mouse_callbacks = {'Button1': lambda: qtile.cmd_spawn(myTerm + ' -e sudo pacman -Syu --noconfirm')},
+                       padding = 5,
+                       background = colors[0]
+                       ),
+                widget.TextBox(
+                       text = '|',
+                       font = "Ubuntu Mono",
+                       background = colors[0],
+                       foreground = '474747',
+                       padding = 2,
+                       fontsize = 14
+                       ),
+                widget.Memory(
+                       font = "Ubuntu Mono",
+                       fontsize = 12,
+                       foreground = colors[6],
+                       background = colors[0],
+                       mouse_callbacks = {'Button1': lambda: qtile.cmd_spawn(myTerm + ' -e htop')},
+                       fmt = 'Mem: {}',
+                       padding = 5
+                       ),
+                widget.TextBox(
+                       text = '|',
+                       font = "Ubuntu Mono",
+                       background = colors[0],
+                       foreground = '474747',
+                       padding = 2,
+                       fontsize = 14
+                       ),
+                widget.Volume(
+                       font = "Ubuntu Mono",
+                       fontsize = 12,
+                       foreground = colors[7],
+                       background = colors[0],
+                       fmt = 'Vol: {}',
+                       padding = 5
+                       ),
+                widget.TextBox(
+                       text = '|',
+                       font = "Ubuntu Mono",
+                       background = colors[0],
+                       foreground = '474747',
+                       padding = 2,
+                       fontsize = 14
+                       ),
+                widget.Clock(
+                       font = "Ubuntu Mono",
+                       fontsize = 12,
+                       foreground = colors[9],
+                       background = colors[0],
+                       format = "%B %d - %H:%M "
+                       ),
+                widget.TextBox(
+                       text = '|',
+                       font = "Ubuntu Mono",
+                       background = colors[0],
+                       foreground = '474747',
+                       padding = 2,
+                       fontsize = 14
+                       ),
+                widget.Systray(
+                        background=colors[0],
+                        icon_size=20,
+                        padding = 4
+                        ),
+            # widget.CurrentLayoutIcon(
+            #        custom_icon_paths = [os.path.expanduser("~/.config/qtile/icons")],
+            #        foreground = colors[1],
+            #        background = colors[0],
+            #        padding = 5,
+            #        scale = 0.7
+            #        ),
+            #   widget.TextBox(
+            #            text = '',
             #            font = "Ubuntu Mono",
+            #            background = colors[14],
+            #            foreground = colors[0],
+            #            padding = -6.1,
+            #            fontsize = 40
+            #            ),
+            #   widget.TextBox(
+            #            text = '|',
+            #            font = "Ubuntu Mono",sep ty
             #            background = colors[0],
             #            foreground = '474747',
             #            padding = 2,
@@ -369,165 +509,8 @@ def init_widgets_list():
             #            background = colors[4],
             #            foreground = colors[0],
             #            padding = -8,
-            #            fontsize = 40
+            #            fontsize = 40R
             #            ),
-            #  widget.TextBox(
-            #            text = '|',
-            #            font = "Ubuntu Mono",
-            #            background = colors[0],
-            #            foreground = '474747',
-            #            padding = 2,
-            #            fontsize = 14
-            #            ),
-              widget.WindowName(
-                       font = "Fira Code",
-                       fontsize = 10,
-                       foreground = colors[1],
-                       background = colors[0],
-                       padding = 0
-                       ),
-            #   widget.Sep(
-            #            linewidth = 0,
-            #            padding = 6,
-            #            foreground = colors[0],
-            #            background = colors[0]
-            #            ),
-             #widget.TextBox(
-             #          text = '◤',
-             #          font = "Ubuntu Mono",
-             #          background = colors[0],
-             #          foreground = colors[3],
-             #          padding = -1,
-             #          fontsize = 37
-             #          ),
-             #widget.Net(
-             #          interface = "enp5s0",
-             #          format = 'Net: {down} ↓↑ {up}',
-             #          foreground = colors[1],
-             #          background = colors[3],
-             #          padding = 5
-             #          ),
-            #   widget.TextBox(
-            #            text = '◤',
-            #            font = "Ubuntu Mono",
-            #            background = colors[0],
-            #            foreground = colors[4],
-            #            padding = -6.5,
-            #            fontsize = 40
-            #            ),
-              widget.TextBox(
-                       text = '◤',
-                       font = "Ubuntu Mono",
-                       background = colors[4],
-                       foreground = colors[0],
-                       padding = -8,
-                       fontsize = 40
-                       ),
-              widget.ThermalSensor(
-                       font = "Fira Code",
-                       fontsize = 10,
-                       foreground = colors[11],
-                       background = colors[4],
-                       threshold = 90,
-                       fmt = 'Temp: {}',
-                       padding = 5,
-                       ),
-              widget.TextBox(
-                       text='◤',
-                       font = "Ubuntu Mono",
-                       background = colors[5],
-                       foreground = colors[4],
-                       padding = -8,
-                       fontsize = 40
-                       ),
-              widget.CheckUpdates(
-                       font = "Fira Code",
-                       fontsize = 10,
-                       update_interval = 1800,
-                       distro = "Arch_checkupdates",
-                       display_format = "Updates: {updates} ",
-                       foreground = colors[1],
-                       colour_have_updates = colors[11],
-                       colour_no_updates = colors[11],
-                       mouse_callbacks = {'Button1': lambda: qtile.cmd_spawn(myTerm + ' -e sudo pacman -Syu')},
-                       padding = 5,
-                       background = colors[5]
-                       ),
-              widget.TextBox(
-                       text = '◤',
-                       font = "Ubuntu Mono",
-                       background = colors[6],
-                       foreground = colors[5],
-                       padding = -8,
-                       fontsize = 40
-                       ),
-              widget.Memory(
-                       font = "Fira Code",
-                       fontsize = 10,
-                       foreground = colors[11],
-                       background = colors[6],
-                       mouse_callbacks = {'Button1': lambda: qtile.cmd_spawn(myTerm + ' -e htop')},
-                       fmt = 'Mem: {}',
-                       padding = 5
-                       ),
-              widget.TextBox(
-                       text = '◤',
-                       font = "Ubuntu Mono",
-                       background = colors[7],
-                       foreground = colors[6],
-                       padding = -8,
-                       fontsize = 40
-                       ),
-              widget.Volume(
-                       font = "Fira Code",
-                       fontsize = 10,
-                       foreground = colors[11],
-                       background = colors[7],
-                       fmt = 'Vol: {}',
-                       padding = 5
-                       ),
-              widget.TextBox(
-                       text = '◤',
-                       font = "Ubuntu Mono",
-                       background = colors[9],
-                       foreground = colors[7],
-                       padding = -8,
-                       fontsize = 40
-                       ),
-              #widget.KeyboardLayout(
-              #         foreground = colors[1],
-              #         background = colors[8],
-              #         fmt = 'Keyboard: {}',
-              #         padding = 5
-              #         ),
-              #widget.TextBox(
-              #         text = '◤',
-              #         font = "Ubuntu Mono",
-              #         background = colors[8],
-              #         foreground = colors[9],
-              #         padding = 0,
-              #         fontsize = 37
-              #         ),
-              widget.Clock(
-                       font = "Fira Code",
-                       fontsize = 10,
-                       foreground = colors[11],
-                       background = colors[9],
-                       format = "%A, %B %d - %H:%M "
-                       ),
-              widget.TextBox(
-                       text = '◤',
-                       font = "Ubuntu Mono",
-                       background = colors[0],
-                       foreground = colors[9],
-                       padding = -8,
-                       fontsize = 40
-                       ),
-               widget.Systray(
-                        background=colors[0],
-                        icon_size=20,
-                        padding = 4
-                        ),
               ]
     return widgets_list
 
@@ -541,7 +524,7 @@ def init_widgets_screen1():
 
 def init_widgets_screen2():
     widgets_screen2 = init_widgets_list()
-    del widgets_screen2[6:25]               # Slicing removes unwanted widgets (systray) on Monitors 1,3
+    del widgets_screen2[9:25]               # Slicing removes unwanted widgets (systray) on Monitors 1,3
     return widgets_screen2                 # Monitor 2 will display all widgets in widgets_list
 
 widgets_screen1 = init_widgets_screen1()
@@ -549,8 +532,8 @@ widgets_screen2 = init_widgets_screen2()
 
 
 def init_screens():
-    return [Screen(top=bar.Bar(widgets=init_widgets_screen1(), size=20, opacity=1)),
-            Screen(top=bar.Bar(widgets=init_widgets_screen2(), size=20, opacity=1))]
+    return [Screen(top=bar.Bar(widgets=init_widgets_screen1(), size=23, opacity=1, margin = [5, 5, 0, 5])),
+            Screen(top=bar.Bar(widgets=init_widgets_screen2(), size=23, opacity=1, margin = [5, 5, 0, 5]))]
 screens = init_screens()
 
 
@@ -571,33 +554,25 @@ dgroups_app_rules = []
 #########################################################
 ################ assgin apps to groups ##################
 #########################################################
-#@hook.subscribe.client_new
-#def assign_app_group(client):
+# @hook.subscribe.client_new
+# def assign_app_group(client):
 #    d = {}
-#    #####################################################################################
-#    ### Use xprop fo find  the value of WM_CLASS(STRING) -> First field is sufficient ###
-#    #####################################################################################
-#    d[group_names[0]] = ["Navigator", "Firefox", "Vivaldi-stable", "Vivaldi-snapshot", "Chromium", "Google-chrome", "Brave", "Brave-browser",
-#              "navigator", "firefox", "vivaldi-stable", "vivaldi-snapshot", "chromium", "google-chrome", "brave", "brave-browser", ]
+   #####################################################################################
+   ### Use xprop fo find  the value of WM_CLASS(STRING) -> First field is sufficient ###
+   #####################################################################################
 #    d[group_names[1]] = [ "Atom", "Subl", "Geany", "Brackets", "Code-oss", "Code", "TelegramDesktop", "Discord",
+#    d[group_names[2]] = ["Navigator", "Firefox", "Vivaldi-stable", "Vivaldi-snapshot", "Chromium", "Google-chrome", "Brave", "Brave-browser",
+#              "navigator", "firefox", "vivaldi-stable", "vivaldi-snapshot", "chromium", "google-chrome", "brave", "brave-browser", ]
 #               "atom", "subl", "geany", "brackets", "code-oss", "code", "telegramDesktop", "discord", ]
-#    d[group_names[2]] = ["Inkscape", "Nomacs", "Ristretto", "Nitrogen", "Feh",
-#              "inkscape", "nomacs", "ristretto", "nitrogen", "feh", ]
-#    d[group_names[3]] = ["Gimp", "gimp" ]
-#    d[group_names[4]] = ["Meld", "meld", "org.gnome.meld" "org.gnome.Meld" ]
-#    d[group_names[5]] = ["Vlc","vlc", "Mpv", "mpv" ]
-#    d[group_names[6]] = ["VirtualBox Manager", "VirtualBox Machine", "Vmplayer",
-#              "virtualbox manager", "virtualbox machine", "vmplayer", ]
-#    d[group_names[7]] = ["Thunar", "Nemo", "Caja", "Nautilus", "org.gnome.Nautilus", "Pcmanfm", "Pcmanfm-qt",
+#    d[group_names[3]] = ["Thunar", "Nemo", "Caja", "Nautilus", "org.gnome.Nautilus", "Pcmanfm", "Pcmanfm-qt",
 #              "thunar", "nemo", "caja", "nautilus", "org.gnome.nautilus", "pcmanfm", "pcmanfm-qt", ]
-#    d[group_names[8]] = ["Evolution", "Geary", "Mail", "Thunderbird",
-#              "evolution", "geary", "mail", "thunderbird" ]
-#    d[group_names[9]] = ["Spotify", "Pragha", "Clementine", "Deadbeef", "Audacious",
+#    d[group_names[4]] = ["Vlc","vlc", "Mpv", "mpv" ]
+#    d[group_names[5]] = ["Spotify", "Pragha", "Clementine", "Deadbeef", "Audacious",
 #              "spotify", "pragha", "clementine", "deadbeef", "audacious" ]
-#    ######################################################################################
-#
-#wm_class = client.window.get_wm_class()[0]
-#
+   ######################################################################################
+
+# wm_class = client.window.get_wm_class()[0]
+
 #    for i in range(len(d)):
 #        if wm_class in list(d.values())[i]:
 #            group = list(d.keys())[i]
